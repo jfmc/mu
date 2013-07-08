@@ -268,8 +268,10 @@ cleanup_missing (MuIndex *midx, MuConfig *opts, MuIndexStats *stats,
 	t = time (NULL);
 	idata.color = !opts->nocolor;
 	newline_before_on();
+
 	rv = mu_index_cleanup
 		(midx, stats,
+		 opts->folders,
 		 show_progress ?
 		 (MuIndexCleanupDeleteCallback)index_msg_cb :
 		 (MuIndexCleanupDeleteCallback)index_msg_silent_cb,
@@ -317,7 +319,8 @@ cmd_index (MuIndex *midx, MuConfig *opts, MuIndexStats *stats, GError **err)
 	show_progress = !opts->quiet && isatty(fileno(stdout));
 	idata.color = !opts->nocolor;
 	newline_before_on();
-	rv = mu_index_run (midx, opts->maildir, opts->rebuild, stats,
+	rv = mu_index_run (midx, opts->maildir, opts->folders,
+			   opts->rebuild, stats,
 			   show_progress ?
 			   (MuIndexMsgCallback)index_msg_cb :
 			   (MuIndexMsgCallback)index_msg_silent_cb,

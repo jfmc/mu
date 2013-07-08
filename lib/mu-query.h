@@ -53,7 +53,6 @@ MuQuery  *mu_query_new  (MuStore *store, GError **err)
  */
 void mu_query_destroy  (MuQuery *self);
 
-
 /**
  * get a version string for the database
  *

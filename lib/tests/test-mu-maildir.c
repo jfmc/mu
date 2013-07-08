@@ -254,6 +254,7 @@ test_mu_maildir_walk_01 (void)
 	memset (&data, 0, sizeof(WalkData));
 
 	rv = mu_maildir_walk (tmpdir,
+			      NULL,
 			      (MuMaildirWalkMsgCallback)msg_cb,
 			      (MuMaildirWalkDirCallback)dir_cb,
 			      TRUE,
@@ -292,6 +293,7 @@ test_mu_maildir_walk (void)
 	g_free (dir);
 
 	rv = mu_maildir_walk (tmpdir,
+			      NULL,
 			      (MuMaildirWalkMsgCallback)msg_cb,
 			      (MuMaildirWalkDirCallback)dir_cb,
 			      TRUE,
@@ -324,6 +326,7 @@ test_mu_maildir_walk_with_noupdate (void)
 
 	memset (&data, 0, sizeof(WalkData));
 	rv = mu_maildir_walk (tmpdir,
+			      NULL,
 			      (MuMaildirWalkMsgCallback)msg_cb,
 			      (MuMaildirWalkDirCallback)dir_cb,
 			      FALSE, /* ie., non-full update */
@@ -338,6 +341,7 @@ test_mu_maildir_walk_with_noupdate (void)
 	 * is no noupdate yet */
 	memset (&data, 0, sizeof(WalkData));
 	rv = mu_maildir_walk (tmpdir,
+			      NULL,
 			      (MuMaildirWalkMsgCallback)msg_cb,
 			      (MuMaildirWalkDirCallback)dir_cb,
 			      TRUE, /* ie., full update */
@@ -356,6 +360,7 @@ test_mu_maildir_walk_with_noupdate (void)
 
 	memset (&data, 0, sizeof(WalkData));
 	rv = mu_maildir_walk (tmpdir,
+			      NULL,
 			      (MuMaildirWalkMsgCallback)msg_cb,
 			      (MuMaildirWalkDirCallback)dir_cb,
 			      FALSE, /* non-full update */
@@ -370,6 +375,7 @@ test_mu_maildir_walk_with_noupdate (void)
 	/* now run again, but do a full update */
 	memset (&data, 0, sizeof(WalkData));
 	rv = mu_maildir_walk (tmpdir,
+			      NULL,
 			      (MuMaildirWalkMsgCallback)msg_cb,
 			      (MuMaildirWalkDirCallback)dir_cb,
 			      TRUE, /* full update */

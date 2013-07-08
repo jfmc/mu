@@ -310,7 +310,7 @@ mu_index_set_xbatch_size (MuIndex *index, guint xbatchsize)
 
 
 MuError
-mu_index_run (MuIndex *index, const char *path,
+mu_index_run (MuIndex *index, const char *path, const char **folders,
 	      gboolean reindex, MuIndexStats *stats,
 	      MuIndexMsgCallback msg_cb, MuIndexDirCallback dir_cb,
 	      void *user_data)
@@ -334,6 +334,7 @@ mu_index_run (MuIndex *index, const char *path,
 		      msg_cb, dir_cb, user_data);
 
 	rv = mu_maildir_walk (path,
+			      folders,
 			      (MuMaildirWalkMsgCallback)on_run_maildir_msg,
 			      (MuMaildirWalkDirCallback)on_run_maildir_dir,
 			      reindex, /* re-index, ie. do a full update */
@@ -368,7 +369,7 @@ on_stats_maildir_file (const char *fullpath, const char *mdir,
 
 
 MuError
-mu_index_stats (MuIndex *index, const char *path,
+mu_index_stats (MuIndex *index, const char *path, const char **folders,
 		MuIndexStats *stats, MuIndexMsgCallback cb_msg,
 		MuIndexDirCallback cb_dir, void *user_data)
 {
@@ -392,6 +393,7 @@ mu_index_stats (MuIndex *index, const char *path,
 	cb_data._dirstamp  = 0;
 
 	return mu_maildir_walk (path,
+				folders,
 				(MuMaildirWalkMsgCallback)on_stats_maildir_file,
 				NULL, FALSE, &cb_data);
 }
@@ -427,9 +429,9 @@ foreach_doc_cb (const char* path, CleanupData *cudata)
 	return cudata->_cb (cudata->_stats, cudata->_user_data);
 }
 
-
 MuError
 mu_index_cleanup (MuIndex *index, MuIndexStats *stats,
+		  const char **folders,
 		  MuIndexCleanupDeleteCallback cb,
 		  void *user_data, GError **err)
 {
@@ -444,6 +446,7 @@ mu_index_cleanup (MuIndex *index, MuIndexStats *stats,
 	cudata._user_data = user_data;
 
 	rv = mu_store_foreach (index->_store,
+			       folders,
 			       (MuStoreForeachFunc)foreach_doc_cb,
 			       &cudata, err);
 

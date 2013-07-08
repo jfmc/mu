@@ -206,7 +206,7 @@ mu_maildir_link (const char* src, const char *targetpath, GError **err)
 
 
 static MuError
-process_dir (const char* path, const gchar *mdir,
+process_dir (const char* path, const gchar *mdir, const char **folders,
 	     MuMaildirWalkMsgCallback msg_cb,
 	     MuMaildirWalkDirCallback dir_cb, gboolean full,
 	     void *data);
@@ -376,7 +376,8 @@ get_mdir_for_path (const gchar *old_mdir, const gchar *dir)
 
 
 static MuError
-process_dir_entry (const char* path, const char* mdir, struct dirent *entry,
+process_dir_entry (const char* path, const char* mdir, const char **folders,
+		   struct dirent *entry,
 		   MuMaildirWalkMsgCallback cb_msg,
 		   MuMaildirWalkDirCallback cb_dir,
 		   gboolean full, void *data)
@@ -411,7 +412,7 @@ process_dir_entry (const char* path, const char* mdir, struct dirent *entry,
 		 * with the top-level maildir as /, and without the
 		 * /tmp, /cur, /new  */
 		my_mdir = get_mdir_for_path (mdir, entry->d_name);
-		rv = process_dir (fullpath, my_mdir, cb_msg, cb_dir, full, data);
+		rv = process_dir (fullpath, my_mdir, folders, cb_msg, cb_dir, full, data);
 		g_free (my_mdir);
 
 		return rv;
@@ -457,6 +458,7 @@ dirent_cmp (struct dirent *d1, struct dirent *d2)
 
 static MuError
 process_dir_entries (DIR *dir, const char* path, const char* mdir,
+		     const char **folders,
 		     MuMaildirWalkMsgCallback msg_cb,
 		     MuMaildirWalkDirCallback dir_cb,
 		     gboolean full, void *data)
@@ -490,7 +492,7 @@ process_dir_entries (DIR *dir, const char* path, const char* mdir,
 #endif /*HAVE_STRUCT_DIRENT_D_INO*/
 
 	for (c = lst, result = MU_OK; c && result == MU_OK; c = g_slist_next(c))
-		result = process_dir_entry (path, mdir, (struct dirent*)c->data,
+		result = process_dir_entry (path, mdir, folders, (struct dirent*)c->data,
 					    msg_cb, dir_cb, full, data);
 
 	g_slist_foreach (lst, (GFunc)dirent_destroy, NULL);
@@ -499,14 +501,22 @@ process_dir_entries (DIR *dir, const char* path, const char* mdir,
 	return result;
 }
 
+gboolean folders_contain(const char **folders, const char *mdir);
 
 static MuError
-process_dir (const char* path, const char* mdir,
+process_dir (const char* path, const char* mdir, const char **folders,
 	     MuMaildirWalkMsgCallback msg_cb, MuMaildirWalkDirCallback dir_cb,
 	     gboolean full, void *data)
 {
 	MuError result;
 	DIR* dir;
+
+	if (!full && mdir != NULL && folders != NULL) {
+		if (!folders_contain(folders, mdir)) {
+			/* Not in 'folders', do not process */
+			return MU_OK;
+		}
+	}
 
 	/* if it has a noindex file, we ignore this dir */
 	if (dir_contains_file (path, MU_MAILDIR_NOINDEX_FILE) ||
@@ -514,7 +524,7 @@ process_dir (const char* path, const char* mdir,
 		g_debug ("found noindex/noupdate: ignoring dir %s", path);
 		return MU_OK;
 	}
-
+	
 	dir = opendir (path);
 	if (!dir) {
 		g_warning ("cannot access %s: %s", path, strerror(errno));
@@ -530,7 +540,7 @@ process_dir (const char* path, const char* mdir,
 		}
 	}
 
-	result = process_dir_entries (dir, path, mdir, msg_cb, dir_cb, full, data);
+	result = process_dir_entries (dir, path, mdir, folders, msg_cb, dir_cb, full, data);
 	closedir (dir);
 
 	/* only run dir_cb if it exists and so far, things went ok */
@@ -542,7 +552,8 @@ process_dir (const char* path, const char* mdir,
 
 
 MuError
-mu_maildir_walk (const char *path, MuMaildirWalkMsgCallback cb_msg,
+mu_maildir_walk (const char *path, const char **folders,
+		 MuMaildirWalkMsgCallback cb_msg,
 		 MuMaildirWalkDirCallback cb_dir, gboolean full,
 		 void *data)
 {
@@ -557,7 +568,7 @@ mu_maildir_walk (const char *path, MuMaildirWalkMsgCallback cb_msg,
 	if (mypath[strlen(mypath)-1] == G_DIR_SEPARATOR)
 		mypath[strlen(mypath)-1] = '\0';
 
-	rv = process_dir (mypath, NULL, cb_msg, cb_dir, full, data);
+	rv = process_dir (mypath, NULL, folders, cb_msg, cb_dir, full, data);
 	g_free (mypath);
 
 	return rv;

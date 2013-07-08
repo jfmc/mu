@@ -116,6 +116,7 @@ typedef MuError (*MuIndexDirCallback) (const char* path, gboolean enter,
  * start the indexing process
  *
  * @param index a valid MuIndex instance
+ * @param folders constraint to folders (can be NULL)
  * @param path the path to index. This must be an absolute path
  * @param force if != 0, force re-indexing already index messages; this is
  *         obviously a lot slower than only indexing new/changed messages
@@ -131,7 +132,8 @@ typedef MuError (*MuIndexDirCallback) (const char* path, gboolean enter,
  * MU_STOP if the user stopped or MU_ERROR in
  * case of some error.
  */
-MuError mu_index_run (MuIndex *index, const char *path, gboolean force,
+MuError mu_index_run (MuIndex *index, const char *path, const char **folders,
+		      gboolean force,
 		      MuIndexStats *stats, MuIndexMsgCallback msg_cb,
 		      MuIndexDirCallback dir_cb, void *user_data);
 
@@ -143,6 +145,7 @@ MuError mu_index_run (MuIndex *index, const char *path, gboolean force,
  *
  * @param index a valid MuIndex instance
  * @param path the path to get stats for; this must be an absolute path
+ * @param folders constraint to folders (can be NULL)
  * @param stats a structure with some statistics about the results;
  * note that this function does *not* reset the struct values to allow
  * for cumulative stats from multiple calls. If needed, you can use
@@ -155,7 +158,8 @@ MuError mu_index_run (MuIndex *index, const char *path, gboolean force,
  * MU_STOP if the user stopped or MU_ERROR in
  * case of some error.
  */
-MuError mu_index_stats (MuIndex *index, const char *path, MuIndexStats *stats,
+MuError mu_index_stats (MuIndex *index, const char *path, const char **folders,
+			MuIndexStats *stats,
 			MuIndexMsgCallback msg_cb, MuIndexDirCallback dir_cb,
 			void *user_data);
 
@@ -180,6 +184,7 @@ typedef MuError (*MuIndexCleanupDeleteCallback) (MuIndexStats *stats,
  * note that this function does *not* reset the struct values to allow
  * for cumulative stats from multiple calls. If needed, you can use
  * @mu_index_stats_clear before calling this function
+ * @param folders maildir folder to cleanup (or NULL for all of them);
  * @param cb a callback function which will be called for every msg;
  * @param user_data a user pointer that will be passed to the callback function
  * @param err to receive error info or NULL. err->code is MuError value
@@ -189,6 +194,7 @@ typedef MuError (*MuIndexCleanupDeleteCallback) (MuIndexStats *stats,
  * case of some error.
  */
 MuError mu_index_cleanup (MuIndex *index, MuIndexStats *stats,
+			  const char **folders,
 			  MuIndexCleanupDeleteCallback cb,
 			  void *user_data, GError **err);
 

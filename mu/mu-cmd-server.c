@@ -1029,7 +1029,7 @@ index_and_cleanup (MuIndex *index, const char *path, GError **err)
 	MuIndexStats stats, stats2;
 
 	mu_index_stats_clear (&stats);
-	rv = mu_index_run (index, path, FALSE, &stats,
+	rv = mu_index_run (index, path, NULL, FALSE, &stats,
 			   index_msg_cb, NULL, NULL);
 
 	if (rv != MU_OK && rv != MU_STOP) {
@@ -1038,7 +1038,7 @@ index_and_cleanup (MuIndex *index, const char *path, GError **err)
 	}
 
 	mu_index_stats_clear (&stats2);
-	rv = mu_index_cleanup (index, &stats2, NULL, NULL, err);
+	rv = mu_index_cleanup (index, &stats2, NULL, NULL, NULL, err);
 	if (rv != MU_OK && rv != MU_STOP) {
 		mu_util_g_set_error (err, MU_ERROR_INTERNAL, "cleanup failed");
 		return rv;

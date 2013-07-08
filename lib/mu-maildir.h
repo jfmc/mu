@@ -105,6 +105,7 @@ typedef MuError (*MuMaildirWalkDirCallback)
  * some error.
  *
  * @param path the maildir path to scan
+ * @param folders constraint the walk to folders (can be NULL)
  * @param cb_msg the callback function called for each msg
  * @param cb_dir the callback function called for each dir
  * @param full whether do a full scan, i.e., to ignore .noupdate files
@@ -114,7 +115,8 @@ typedef MuError (*MuMaildirWalkDirCallback)
  * MU_STOP if we want to stop, or MU_ERROR in
  * case of error
  */
-MuError mu_maildir_walk (const char *path, MuMaildirWalkMsgCallback cb_msg,
+MuError mu_maildir_walk (const char *path, const char **folders,
+			 MuMaildirWalkMsgCallback cb_msg,
 			 MuMaildirWalkDirCallback cb_dir, gboolean full,
 			 void *data);
 /**

@@ -119,6 +119,7 @@ struct _MuConfig {
 	char**          my_addresses;   /* 'my e-mail address', for mu
 					 * cfind; can be use multiple
 					 * times */
+	char**          folders;        /* folders to synchronize and cleanup */
 
 	/* options for querying 'find' (and view-> 'summary') */
 	gchar		*fields;	/* fields to show in output */

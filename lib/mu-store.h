@@ -301,6 +301,7 @@ gboolean mu_store_is_read_only (const MuStore *store);
  * call a function for each document in the database
  *
  * @param self a valid store
+ * @param folders constrain to folders (may be NULL)
  * @param func a callback function to to call for each document
  * @param user_data a user pointer passed to the callback function
  * @param err to receive error info or NULL. err->code is MuError value
@@ -309,7 +310,7 @@ gboolean mu_store_is_read_only (const MuStore *store);
  * MU_ERROR in case of error
  */
 typedef MuError (*MuStoreForeachFunc) (const char* path, gpointer user_data);
-MuError  mu_store_foreach (MuStore *self, MuStoreForeachFunc func,
+MuError  mu_store_foreach (MuStore *self, const char **folders, MuStoreForeachFunc func,
 			   void *user_data, GError **err);
 
 /**

@@ -281,6 +281,75 @@ add_prefix (MuMsgFieldId mfid, Xapian::QueryParser* qparser)
 	} MU_XAPIAN_CATCH_BLOCK;
 }
 
+extern "C" {
+/* mdir is in folders */
+gboolean folders_contain(const char **folders, const char *mdir) {
+  if (folders == NULL) return FALSE;
+
+  for(const char **f = folders;
+      *f != NULL; f++) {
+    if (strcmp(mdir, *f) == 0) return TRUE;
+  }
+  return FALSE;
+}
+
+/* Obtain a searchexpr for the given set of folders (NULL if empty) */
+/* TODO: This is not a nice implementation (quadratic, etc.) */
+char *folders_to_searchexpr(const char **folders) {
+  gchar *searchexpr = NULL;
+
+  if (folders == NULL) return NULL;
+  
+  for(const char **f = folders;
+      *f != NULL; f++) {
+    if (searchexpr == NULL) {
+      gchar *s = g_strdup_printf("maildir:%s", *f);
+      searchexpr = s;
+    } else {
+      gchar *s = g_strdup_printf("%s OR maildir:%s", searchexpr, *f);
+      g_free(searchexpr);
+      searchexpr = s;
+    }
+  }
+
+#if 0
+  printf("searchexpr is: %s\n", searchexpr);
+#endif
+  return searchexpr;
+}
+}
+
+// Query mails of given maildir folders (all if folders == NULL)
+Xapian::Query mu_query_folders(MuStore *self, const char **folders, GError **err) {
+  Xapian::Query query;
+  char *preprocessed;
+  gchar *searchexpr;
+
+  if (folders == NULL) {
+    return Xapian::Query::MatchAll;
+  }
+
+  searchexpr = folders_to_searchexpr(folders);
+  preprocessed = mu_query_preprocess (searchexpr, err);
+  if (searchexpr != NULL) {
+    g_free(searchexpr);
+  }
+
+  MuQuery *q = mu_query_new(self, err);
+  query = q->query_parser().parse_query
+    (preprocessed,
+     Xapian::QueryParser::FLAG_BOOLEAN          |
+     Xapian::QueryParser::FLAG_PURE_NOT         |
+     Xapian::QueryParser::FLAG_AUTO_SYNONYMS    |
+     Xapian::QueryParser::FLAG_WILDCARD	        |
+     Xapian::QueryParser::FLAG_BOOLEAN_ANY_CASE
+     );
+  mu_query_destroy(q);
+
+  g_free (preprocessed);
+  return query;
+}
+
 MuQuery*
 mu_query_new (MuStore *store, GError **err)
 {

@@ -31,6 +31,7 @@
 #include <errno.h>
 
 #include "mu-store.h"
+#include "mu-query.h"
 #include "mu-store-priv.hh" /* _MuStore */
 
 #include "mu-msg.h"
@@ -210,10 +211,11 @@ mu_store_get_timestamp (const MuStore *store, const char *msgpath, GError **err)
 	return rv;
 }
 
-
+/* defined in mu-query.cc */
+Xapian::Query mu_query_folders(MuStore *self, const char **folders, GError **err);
 
 MuError
-mu_store_foreach (MuStore *self,
+mu_store_foreach (MuStore *self, const char **folders,
 		  MuStoreForeachFunc func, void *user_data, GError **err)
 {
 	g_return_val_if_fail (self, MU_ERROR);
@@ -221,8 +223,8 @@ mu_store_foreach (MuStore *self,
 
 	try {
 		Xapian::Enquire enq (*self->db_read_only());
+		enq.set_query(mu_query_folders(self, folders, err));
 
-		enq.set_query  (Xapian::Query::MatchAll);
 		enq.set_cutoff (0,0);
 
 		Xapian::MSet matches
@@ -238,7 +240,6 @@ mu_store_foreach (MuStore *self,
 			if (res != MU_OK)
 				return res;
 		}
-
 	} MU_XAPIAN_CATCH_BLOCK_G_ERROR_RETURN(err, MU_ERROR_XAPIAN,
 					       MU_ERROR_XAPIAN);
 
