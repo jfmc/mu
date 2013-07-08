@@ -1001,7 +1001,6 @@ set_my_addresses (MuStore *store, const char *addrstr)
 	g_strfreev (my_addresses);
 }
 
-
 static char*
 get_checked_path (const char *path)
 {
@@ -1023,13 +1022,13 @@ get_checked_path (const char *path)
 
 
 static MuError
-index_and_cleanup (MuIndex *index, const char *path, GError **err)
+index_and_cleanup (MuIndex *index, const char *path, const char **folders, GError **err)
 {
 	MuError rv;
 	MuIndexStats stats, stats2;
 
 	mu_index_stats_clear (&stats);
-	rv = mu_index_run (index, path, NULL, FALSE, &stats,
+	rv = mu_index_run (index, path, folders, FALSE, &stats,
 			   index_msg_cb, NULL, NULL);
 
 	if (rv != MU_OK && rv != MU_STOP) {
@@ -1038,7 +1037,7 @@ index_and_cleanup (MuIndex *index, const char *path, GError **err)
 	}
 
 	mu_index_stats_clear (&stats2);
-	rv = mu_index_cleanup (index, &stats2, NULL, NULL, NULL, err);
+	rv = mu_index_cleanup (index, &stats2, folders, NULL, NULL, err);
 	if (rv != MU_OK && rv != MU_STOP) {
 		mu_util_g_set_error (err, MU_ERROR_INTERNAL, "cleanup failed");
 		return rv;
@@ -1061,6 +1060,8 @@ cmd_index (ServerContext *ctx, GHashTable *args, GError **err)
 	MuIndex *index;
 	const char *argpath;
 	char *path;
+	char **folders = NULL;
+	const char *foldersstr;
 
 	index = NULL;
 
@@ -1071,13 +1072,19 @@ cmd_index (ServerContext *ctx, GHashTable *args, GError **err)
 	set_my_addresses (ctx->store, get_string_from_args
 			  (args, "my-addresses", TRUE, NULL));
 
+	foldersstr = get_string_from_args(args, "folders", TRUE, NULL);
+	if (foldersstr != NULL) {
+		folders = g_strsplit (foldersstr, ",", -1);
+	}
+
 	if (!(index = mu_index_new (ctx->store, err)))
 		goto leave;
 
-	index_and_cleanup (index, path, err);
+	index_and_cleanup (index, path, (const char **)folders, err);
 
 leave:
 	g_free (path);
+	if (folders != NULL) g_strfreev (folders);
 
 	if (err && *err)
 		print_and_clear_g_error (err);
