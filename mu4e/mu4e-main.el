@@ -46,9 +46,10 @@
     (define-key map "f" 'smtpmail-send-queued-mail)
 
     ;;
+    (define-key map "u" 'mu4e-update-mail-and-index-quick)
+    (define-key map  (kbd "C-S-u") 'mu4e-update-mail-and-index-quick)
     (define-key map "U" 'mu4e-update-mail-and-index)
-    (define-key map  (kbd "C-S-u") 'mu4e-update-mail-and-index)
-
+    (define-key map  (kbd "C-S-U") 'mu4e-update-mail-and-index)
 
     (define-key map "$" 'mu4e-show-log)
     (define-key map "A" 'mu4e-about)
@@ -132,7 +133,9 @@ clicked."
 	"\n\n"
 	(propertize "  Misc\n\n" 'face 'mu4e-title-face)
 
-	(mu4e~main-action-str "\t* [U]pdate email & database\n"
+	(mu4e~main-action-str "\t* [u]pdate email & database (quick folder list)\n"
+	  'mu4e-update-mail-show-window)
+	(mu4e~main-action-str "\t* [U]pdate email & database (all folders)\n"
 	  'mu4e-update-mail-show-window)
 
 	;; show the queue functions if `smtpmail-queue-dir' is defined

@@ -771,12 +771,12 @@ The messages are inserted into the process buffer."
         (with-selected-window procwin
           (goto-char (point-max)))))))
 
-(defun  mu4e-update-index ()
+(defun  mu4e-update-index (folders)
   "Update the mu4e index."
-  (interactive)
+;;  (interactive)
   (unless mu4e-maildir
     (mu4e-error "`mu4e-maildir' is not defined"))
-  (mu4e~proc-index mu4e-maildir mu4e-user-mail-address-list))
+  (mu4e~proc-index mu4e-maildir mu4e-user-mail-address-list folders))
 
 ;; complicated function, as it:
 ;;   - needs to check for errors
@@ -788,6 +788,14 @@ run-in-background is non-nil (or functional called with
 prefix-argument), run in the background; otherwise, pop up a
 window."
   (interactive "P")
+  (mu4e-update-mail-and-index-common run-in-background nil))
+
+;; Quick version of mu4e-update-mail-and-index
+(defun mu4e-update-mail-and-index-quick (run-in-background)
+  (interactive "P")
+  (mu4e-update-mail-and-index-common run-in-background mu4e-quick-folders))
+
+(defun mu4e-update-mail-and-index-common (run-in-background folders)
   (unless mu4e-get-mail-command
     (mu4e-error "`mu4e-get-mail-command' is not defined"))
   (let* ((buf (unless run-in-background
@@ -796,7 +804,7 @@ window."
 			  (- (window-height (selected-window)) 8))))
 	  (process-connection-type t)
 	  (proc (start-process-shell-command
-		  mu4e~update-name buf mu4e-get-mail-command)))
+		  mu4e~update-name buf (funcall mu4e-get-mail-command folders))))
     (mu4e-message "Retrieving mail...")
     (when (window-live-p win)
       (with-selected-window win
@@ -804,6 +812,7 @@ window."
 	(set-window-dedicated-p win t)
 	(erase-buffer)
 	(insert "\n"))) ;; FIXME -- needed so output starts
+    (set (make-local-variable 'mu4e-local-quick-folders) folders)
     (set-process-sentinel proc
       (lambda (proc msg)
 	(let* ((status (process-status proc))
@@ -816,7 +825,7 @@ window."
 	  (message nil)
 	  ;; there may be an error, give the user up to 5 seconds to check
 	  (when maybe-error (sit-for 5))
-	  (mu4e-update-index)
+	  (mu4e-update-index mu4e-local-quick-folders)
 	  (when (buffer-live-p buf) (kill-buffer buf)))))
     ;; if we're running in the foreground, handle password requests
     (unless run-in-background

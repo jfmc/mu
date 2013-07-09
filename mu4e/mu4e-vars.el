@@ -61,6 +61,11 @@ Common values are \"offlineimap\" and \"fetchmail\"."
   :group 'mu4e
   :safe 'stringp)
 
+(defcustom mu4e-quick-folders nil
+  "A list of maildir folders for quick update."
+  :type '(repeat (string :tag "Folder"))
+  :group 'mu4e-folders)
+
 (defcustom mu4e-update-interval nil
   "Number of seconds between automatic calls to retrieve mail and
 update the database. If nil, don't update automatically. Note,

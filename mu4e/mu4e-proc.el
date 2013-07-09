@@ -399,15 +399,19 @@ or (:error ) sexp, which are handled my `mu4e-update-func' and
       idparam (or flagstr "") (or path "")
       (format "newname:%s" (if mu4e-change-filenames-when-moving "true" "false")))))
 
-(defun mu4e~proc-index (path my-addresses)
+(defun mu4e~proc-index (path my-addresses folders)
   "Update the message database for filesystem PATH, which should
 point to some maildir directory structure. MY-ADDRESSES is a list
 of 'my' email addresses (see `mu4e-user-mail-address-list')."
   (let ((path (mu4e~proc-escape path))
-	 (addrs (when my-addresses (mapconcat 'identity my-addresses ","))))
+	(addrs (when my-addresses (mapconcat 'identity my-addresses ",")))
+	(foldersstr
+	 (if folders
+	     (concat " folders:" (mapconcat 'identity folders ","))
+	   "")))
     (if addrs
-      (mu4e~proc-send-command "cmd:index path:%s my-addresses:%s" path addrs)
-      (mu4e~proc-send-command "cmd:index path:%s" path))))
+      (mu4e~proc-send-command "cmd:index path:%s my-addresses:%s%s" path addrs foldersstr)
+      (mu4e~proc-send-command "cmd:index path:%s%s" path foldersstr))))
 
 (defun mu4e~proc-add (path maildir)
   "Add the message at PATH to the database.
